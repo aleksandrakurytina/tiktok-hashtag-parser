@@ -16,7 +16,7 @@
 ### Вручную — Linux / macOS
 
 ```bash
-git clone <url-твоего-репозитория>.git
+git clone https://github.com/aleksandrakurytina/tiktok-hashtag-parser.git
 cd tiktok-hashtag-parser
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
