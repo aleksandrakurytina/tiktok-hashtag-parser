@@ -11,6 +11,7 @@ out/
 *.xlsx
 *.json
 !package.json
+!docs/data.json          # его собирает Actions и отдаёт Pages
 
 # Сессии и секреты — НИКОГДА не коммитим
 session*.json
