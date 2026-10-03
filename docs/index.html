@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TikTok — аналитика по хештегам</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📊</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <h1>TikTok: аналитика по хештегам</h1>
+  <div class="meta">
+    <span id="updated" class="pill">загрузка…</span>
+    <span id="mode" class="pill"></span>
+    <a class="pill link" href="https://github.com/aleksandrakurytina/tiktok-hashtag-parser/actions/workflows/collect.yml">↻ Обновить данные (Actions)</a>
+  </div>
+</header>
+
+<section id="kpi" class="kpi"></section>
+
+<section class="table-wrap">
+  <div class="table-tools">
+    <input id="search" placeholder="поиск: автор, описание, хештеги…">
+    <span id="shown" class="hint"></span>
+    <a id="dl" class="hint link" href="data.json" download>⬇ data.json</a>
+  </div>
+  <div class="scroll">
+    <table id="table">
+      <thead>
+        <tr>
+          <th data-key="tag">тег</th>
+          <th data-key="author">автор</th>
+          <th data-key="views">просмотры</th>
+          <th data-key="likes">лайки</th>
+          <th data-key="comments">комменты</th>
+          <th data-key="shares">репосты</th>
+          <th data-key="saves">сохранения</th>
+          <th data-key="engagement_rate">ER %</th>
+          <th data-key="duration_sec">сек</th>
+          <th data-key="created_at">создано</th>
+          <th data-key="hashtags">хештеги</th>
+          <th data-key="description">описание</th>
+          <th>ссылка</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <div id="empty" class="empty" style="display:none"></div>
+</section>
+
+<footer>
+  Данные собирает GitHub Actions и кладёт в <code>docs/data.json</code> — страница статическая.
+  Обновить вручную: репозиторий → <b>Actions</b> → «Сбор данных для Pages» → <b>Run workflow</b>.
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

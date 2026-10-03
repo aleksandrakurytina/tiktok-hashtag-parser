@@ -1,0 +1,79 @@
+name: Сбор данных для Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Хештеги через запятую"
+        required: false
+        default: "работа,заработок,удаленка"
+      limit:
+        description: "Видео на тег"
+        required: false
+        default: "30"
+      mode:
+        description: "Режим"
+        required: true
+        default: "demo"
+        type: choice
+        options: [demo, live]
+      no_details:
+        description: "Не заходить на страницы видео (быстрее, полей меньше)"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    - cron: "0 6 * * *"   # каждый день в 06:00 UTC
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Зависимости
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Браузер для Playwright
+        if: ${{ github.event.inputs.mode != 'demo' || github.event_name == 'schedule' }}
+        run: python -m playwright install --with-deps chromium
+
+      - name: Достаём сессию (если задан секрет TIKTOK_SESSION)
+        if: ${{ secrets.TIKTOK_SESSION != '' }}
+        env:
+          TIKTOK_SESSION: ${{ secrets.TIKTOK_SESSION }}
+        run: |
+          mkdir -p sessions
+          echo "$TIKTOK_SESSION" | base64 -d > sessions/session.json
+          echo "сессия восстановлена"
+
+      - name: Сбор
+        run: |
+          python pages_export.py \
+            --tags "${{ github.event.inputs.tags || 'работа,заработок,удаленка' }}" \
+            --limit "${{ github.event.inputs.limit || '30' }}" \
+            --mode "${{ github.event.inputs.mode || 'demo' }}" \
+            ${{ github.event.inputs.no_details == 'true' && '--no-details' || '' }} \
+            ${{ secrets.TIKTOK_SESSION != '' && '--session sessions/session.json' || '' }}
+
+      - name: Коммитим свежие данные
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          if git diff --cached --quiet; then
+            echo "данные не изменились — коммитить нечего"
+          else
+            git commit -m "данные: $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push
+          fi

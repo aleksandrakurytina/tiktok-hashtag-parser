@@ -26,6 +26,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, render_template, request, send_file
 
+import collector
 import tt_parser as tt
 
 BASE = Path(__file__).resolve().parent
@@ -110,10 +111,7 @@ def run_job(job: Job) -> None:
     tt.LOG.addHandler(handler)
     tt.LOG.setLevel(logging.INFO)
     try:
-        if job.params.get("demo"):
-            _run_demo(job)
-        else:
-            _run_live(job)
+        _run_collection(job)
     except Exception as exc:
         job.error = f"{type(exc).__name__}: {exc}"
         job.add_log(f"ОШИБКА: {job.error}")
@@ -124,89 +122,22 @@ def run_job(job: Job) -> None:
         tt.LOG.removeHandler(handler)
 
 
-def _run_demo(job: Job) -> None:
-    tags = job.params["tags"]
-    limit = job.params["limit"]
-    video_files = sorted(FIXTURES.glob("video_page_*.html"))
-    if not (FIXTURES / "tag_page.html").exists() or not video_files:
-        raise RuntimeError("нет фикстур — запустите: python fixtures/make_fixtures.py")
+def _run_collection(job: Job) -> None:
+    """Сбор через общий collector: и демо, и реальный режим."""
 
-    tag_html = (FIXTURES / "tag_page.html").read_text(encoding="utf-8")
-    links = tt.extract_links(tag_html)
-    job.add_log(f"демо-режим: {len(links)} тестовых видео на тег")
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    def on_row(row: tt.VideoRow) -> None:
+        job.add_row(row)
 
-    for tag in tags:
-        if job.stop.is_set():
-            break
-        job.progress = {"tag": tag, "done": 0, "total": min(len(links), limit),
-                        "overall": len(job.rows)}
-        for i, (author, vid, _caption) in enumerate(links[:limit]):
-            if job.stop.is_set():
-                break
-            src = video_files[i % len(video_files)].read_text(encoding="utf-8")
-            parsed = tt.extract_embedded_json(src)
-            row = parsed[0] if parsed else tt.VideoRow()
-            row.tag, row.video_id, row.author = tag, vid, author
-            row.url = f"https://www.tiktok.com/@{author}/video/{vid}"
-            row.collected_at = now
-            row.engagement_rate = tt.calc_er(row)
-            job.add_row(row)
-            job.progress["done"] = i + 1
-            job.progress["overall"] = len(job.rows)
-            time.sleep(0.12)
+    def on_progress(progress: dict) -> None:
+        job.progress.update(progress)
+        job.progress["overall"] = len(job.rows)
 
+    collector.collect_rows(job.params, on_row=on_row, should_stop=job.stop.is_set,
+                           on_progress=on_progress)
 
-def _run_live(job: Job) -> None:
-    p = job.params
-    try:
-        browser = tt.Browser(headless=p.get("headless", True),
-                             storage_state=p.get("storage_state"),
-                             proxy=p.get("proxy"))
-    except Exception as exc:
-        if not tt._is_missing_browser(exc):
-            raise
-        raise RuntimeError("браузер Playwright не установлен — выполните: "
-                           "python -m playwright install chromium")
-
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    try:
-        for tag in p["tags"]:
-            if job.stop.is_set():
-                break
-            links, embedded = tt.scroll_tag_page(browser, tag, p["scrolls"], p["delay"])
-            by_id = {r.video_id: r for r in embedded}
-            total = min(len(links), p["limit"])
-            job.progress = {"tag": tag, "done": 0, "total": total, "overall": len(job.rows)}
-            job.add_log(f"[{tag}] найдено ссылок: {len(links)}")
-
-            if browser.captcha_hit:
-                job.add_log("TikTok показывает проверку — останавливаюсь. "
-                            "Загрузите session.json или снизьте лимит.")
-                break
-
-            for i, (author, vid, _caption) in enumerate(links[: p["limit"]]):
-                if job.stop.is_set() or browser.captcha_hit:
-                    break
-                row = by_id.get(vid)
-                if row is None and not p.get("no_details"):
-                    row = tt.enrich_video(browser, author, vid, pause=p["delay"])
-                    tt.sleep_jitter(p["delay"])
-                if row is None:
-                    row = tt.VideoRow(video_id=vid, author=author,
-                                      url=f"https://www.tiktok.com/@{author}/video/{vid}")
-                row.tag = tag
-                row.collected_at = now
-                row.engagement_rate = tt.calc_er(row)
-                job.add_row(row)
-                job.progress["done"] = i + 1
-                job.progress["overall"] = len(job.rows)
-
-            if browser.captcha_hit:
-                break
-            tt.sleep_jitter(p["delay"] * 2)
-    finally:
-        browser.close()
+    if job.params.get("min_views"):
+        job.rows = [r for r in job.rows if r.views >= job.params["min_views"]]
+        job.progress["overall"] = len(job.rows)
 
 
 # ───────────────────────────── HTTP ─────────────────────────────
