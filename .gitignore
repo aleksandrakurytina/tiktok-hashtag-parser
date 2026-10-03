@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Результаты парсинга
+out/
+*.csv
+*.xlsx
+*.json
+!package.json
+
+# Сессии и секреты — НИКОГДА не коммитим
+session*.json
+storage_state*.json
+.env
+
+# IDE / ОС
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
