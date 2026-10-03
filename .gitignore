@@ -15,6 +15,7 @@ out/
 # Сессии и секреты — НИКОГДА не коммитим
 session*.json
 storage_state*.json
+sessions/
 .env
 
 # IDE / ОС

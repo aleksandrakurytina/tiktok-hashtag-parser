@@ -1,0 +1,82 @@
+:root{
+  --bg:#0f1115; --card:#171a21; --line:#262b36; --text:#e7eaf0; --muted:#8b93a7;
+  --accent:#25f4ee; --accent2:#fe2c55; --good:#3ddc84; --warn:#ffb020;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+header{padding:18px 22px 10px; border-bottom:1px solid var(--line); display:flex; align-items:baseline; gap:12px}
+header h1{margin:0; font-size:20px; letter-spacing:.2px}
+header .sub{color:var(--muted); font-size:12px}
+
+.panel{background:var(--card); border:1px solid var(--line); border-radius:12px; margin:16px; padding:14px}
+.row{display:flex; gap:14px; flex-wrap:wrap; align-items:flex-end; margin-bottom:10px}
+.row:last-of-type{margin-bottom:0}
+label{display:flex; flex-direction:column; gap:5px; font-size:12px; color:var(--muted)}
+label.grow{flex:1 1 260px}
+label input, label select{
+  background:#0d0f14; color:var(--text); border:1px solid var(--line);
+  border-radius:8px; padding:8px 10px; font-size:13px; min-width:90px; width:100%
+}
+label input:focus, label select:focus{outline:none; border-color:var(--accent)}
+.hint{color:#5f6779; font-size:11px; font-weight:400}
+code{background:#0d0f14; padding:1px 5px; border-radius:4px; font-size:11px}
+.checks{gap:18px}
+label.check{flex-direction:row; align-items:center; gap:8px; color:var(--text); font-size:13px; cursor:pointer}
+label.check input{width:auto}
+.sess{display:flex; gap:14px; align-items:flex-end; flex:1 1 320px; flex-wrap:wrap}
+.filebtn{
+  border:1px dashed var(--line); padding:6px 12px; border-radius:8px; cursor:pointer;
+  color:var(--muted); font-size:12px; background:#0d0f14
+}
+.filebtn input{display:none}
+.buttons{display:flex; gap:8px; align-items:center}
+button{
+  background:#20242e; color:var(--text); border:1px solid var(--line);
+  padding:9px 16px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600
+}
+button:hover:not(:disabled){border-color:var(--accent)}
+button:disabled{opacity:.45; cursor:not-allowed}
+button.primary{background:linear-gradient(90deg,var(--accent),#12c2e9); color:#04141a; border:none}
+.warn{margin:10px 0 0; color:var(--warn); font-size:12px}
+
+.status{display:flex; align-items:center; gap:14px; margin:0 16px 12px}
+.state{padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700; white-space:nowrap}
+.state.idle{background:#20242e; color:var(--muted)}
+.state.run{background:rgba(37,244,238,.14); color:var(--accent); animation:pulse 1.4s infinite}
+.state.done{background:rgba(61,220,132,.14); color:var(--good)}
+.state.err{background:rgba(254,44,85,.16); color:var(--accent2)}
+@keyframes pulse{50%{opacity:.55}}
+.bar{flex:1; height:7px; background:#20242e; border-radius:6px; overflow:hidden}
+.bar>div{height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent2)); transition:width .3s}
+.counters{color:var(--muted); font-size:12px; white-space:nowrap}
+
+.grid{display:grid; grid-template-columns:1fr 300px; gap:16px; margin:0 16px 24px; align-items:start}
+@media (max-width:1000px){.grid{grid-template-columns:1fr}}
+.table-wrap{background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+.table-tools{display:flex; gap:12px; align-items:center; padding:10px 12px; border-bottom:1px solid var(--line)}
+.table-tools input{flex:1; background:#0d0f14; border:1px solid var(--line); border-radius:8px; padding:7px 10px; color:var(--text)}
+.table-wrap .scroll{max-height:66vh; overflow:auto}
+table{border-collapse:collapse; width:100%; font-size:13px}
+thead th{
+  position:sticky; top:0; background:#1b1f28; text-align:left; padding:9px 10px;
+  cursor:pointer; white-space:nowrap; border-bottom:1px solid var(--line); font-size:12px; color:var(--muted)
+}
+thead th:hover{color:var(--accent)}
+thead th.sorted{color:var(--accent)}
+tbody td{padding:7px 10px; border-bottom:1px solid #1e222c; vertical-align:top}
+tbody tr:hover{background:#1b1f28}
+.num{text-align:right; font-variant-numeric:tabular-nums}
+.desc{max-width:340px; color:var(--muted)}
+.desc span{display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.badge{display:inline-block; padding:1px 7px; border-radius:10px; background:#20242e; color:var(--muted); font-size:11px}
+.er-hot{color:var(--good); font-weight:700}
+.empty{padding:40px; text-align:center; color:var(--muted)}
+.log-wrap{background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px}
+.log-title{font-size:12px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.6px}
+.log{height:66vh; overflow:auto; font:11.5px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; color:#9aa3b8; white-space:pre-wrap}
+.export a{color:var(--muted); font-size:12px; margin-left:6px}

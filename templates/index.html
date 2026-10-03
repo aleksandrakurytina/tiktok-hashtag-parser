@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Парсер TikTok по хештегам</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📊</text></svg>">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Парсер TikTok по хештегам</h1>
+  <span class="sub">публичная аналитика · только чтение</span>
+</header>
+
+<section class="panel">
+  <div class="row">
+    <label class="grow">
+      Хештеги <span class="hint">через пробел или запятую</span>
+      <input id="tags" value="работа, заработок, удаленка" placeholder="например: работа, заработок, подработка">
+    </label>
+    <label>Лимит на тег<input id="limit" type="number" value="30" min="1" max="500"></label>
+    <label>Прокруток<input id="scrolls" type="number" value="12" min="1" max="60"></label>
+    <label>Пауза, сек<input id="delay" type="number" value="2" min="0.5" max="15" step="0.5"></label>
+  </div>
+
+  <div class="row">
+    <label class="grow">
+      Прокси <span class="hint">необязательно: http://user:pass@host:port</span>
+      <input id="proxy" placeholder="оставить пустым">
+    </label>
+    <label>Мин. просмотров<input id="min_views" type="number" value="0" min="0" step="1000"></label>
+  </div>
+
+  <div class="row checks">
+    <label class="check"><input id="demo" type="checkbox" checked> <span>Демо-режим <b>(без интернета и браузера)</b></span></label>
+    <label class="check"><input id="no_details" type="checkbox"> <span>Без захода на видео (быстрее, полей меньше)</span></label>
+    <label class="check"><input id="headless" type="checkbox" checked> <span>Скрытый браузер (снять галочку, если нужна ручная капча)</span></label>
+  </div>
+
+  <div class="row">
+    <div class="sess">
+      <label class="grow">
+        Файл сессии <span class="hint">создаётся командой <code>python tt_parser.py --save-login session.json</code></span>
+        <select id="session">
+          <option value="">— без сессии —</option>
+        </select>
+      </label>
+      <label class="filebtn">
+        Загрузить session.json
+        <input id="session_file" type="file" accept=".json">
+      </label>
+    </div>
+    <div class="buttons">
+      <button id="start" class="primary">▶ Собрать</button>
+      <button id="stop" disabled>■ Стоп</button>
+      <button id="clear">Очистить</button>
+      <span id="export" class="export"></span>
+    </div>
+  </div>
+  <p class="warn">Демо-режим работает на тестовых файлах — включите его, чтобы проверить интерфейс.
+     Для реального сбора снимите галочку; лучше сразу загрузить session.json, иначе TikTok быстро покажет проверку.</p>
+</section>
+
+<section class="status">
+  <div id="state" class="state idle">ожидание</div>
+  <div class="bar"><div id="bar"></div></div>
+  <div id="counters" class="counters"></div>
+</section>
+
+<section class="grid">
+  <div class="table-wrap">
+    <div class="table-tools">
+      <input id="search" placeholder="поиск по таблице: автор, описание, хештеги…">
+      <span id="shown" class="hint"></span>
+    </div>
+    <div class="scroll">
+    <table id="table">
+      <thead>
+        <tr>
+          <th data-key="tag">тег</th>
+          <th data-key="author">автор</th>
+          <th data-key="views">просмотры</th>
+          <th data-key="likes">лайки</th>
+          <th data-key="comments">комменты</th>
+          <th data-key="shares">репосты</th>
+          <th data-key="saves">сохранения</th>
+          <th data-key="engagement_rate">ER %</th>
+          <th data-key="duration_sec">сек</th>
+          <th data-key="created_at">создано</th>
+          <th data-key="hashtags">хештеги</th>
+          <th data-key="description">описание</th>
+          <th>ссылка</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    </div>
+    <div id="empty" class="empty">Здесь появится таблица. Жми «Собрать» ↑</div>
+  </div>
+  <aside class="log-wrap">
+    <div class="log-title">Лог</div>
+    <div id="log" class="log"></div>
+  </aside>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
