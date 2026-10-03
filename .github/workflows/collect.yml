@@ -32,6 +32,13 @@ jobs:
   collect:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      # для schedule inputs пустые — берём значения по умолчанию
+      TAGS: ${{ inputs.tags || 'работа,заработок,удаленка' }}
+      LIMIT: ${{ inputs.limit || '30' }}
+      MODE: ${{ inputs.mode || (secrets.TIKTOK_SESSION != '' && 'live' || 'demo') }}
+      HAS_SESSION: ${{ secrets.TIKTOK_SESSION }}
+
     steps:
       - uses: actions/checkout@v4
 
@@ -45,11 +52,11 @@ jobs:
           python -m pip install -r requirements.txt
 
       - name: Браузер для Playwright
-        if: ${{ github.event.inputs.mode != 'demo' || github.event_name == 'schedule' }}
+        if: env.MODE != 'demo'
         run: python -m playwright install --with-deps chromium
 
       - name: Достаём сессию (если задан секрет TIKTOK_SESSION)
-        if: ${{ secrets.TIKTOK_SESSION != '' }}
+        if: env.HAS_SESSION != ''
         env:
           TIKTOK_SESSION: ${{ secrets.TIKTOK_SESSION }}
         run: |
@@ -57,14 +64,17 @@ jobs:
           echo "$TIKTOK_SESSION" | base64 -d > sessions/session.json
           echo "сессия восстановлена"
 
-      - name: Сбор
+      - name: Сбор данных
         run: |
-          python pages_export.py \
-            --tags "${{ github.event.inputs.tags || 'работа,заработок,удаленка' }}" \
-            --limit "${{ github.event.inputs.limit || '30' }}" \
-            --mode "${{ github.event.inputs.mode || 'demo' }}" \
-            ${{ github.event.inputs.no_details == 'true' && '--no-details' || '' }} \
-            ${{ secrets.TIKTOK_SESSION != '' && '--session sessions/session.json' || '' }}
+          args="--tags $TAGS --limit $LIMIT --mode $MODE"
+          if [ "${{ github.event.inputs.no_details }}" = "true" ]; then
+            args="$args --no-details"
+          fi
+          if [ -f sessions/session.json ]; then
+            args="$args --session sessions/session.json"
+          fi
+          echo "запуск: python pages_export.py $args"
+          python pages_export.py $args
 
       - name: Коммитим свежие данные
         run: |
